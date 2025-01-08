@@ -28,8 +28,8 @@ class loadUI(QtWidgets.QFrame, Ui_Form):
 
     def __init__(self):
         super().__init__()
-        self._path = '{0}/vex/'.format(os.getenv('MYTOOLS').replace('\\', '/'))
-        self._prePath = '{0}/presets/'.format(os.getenv('MYTOOLS').replace('\\', '/'))
+        self._path = '{0}/vex/'.format(self.rootpath())
+        self._prePath = '{0}/presets/'.format(self.rootpath())
         self._file = ''
         self._text1 = ''
         self._text2 = ''
@@ -145,8 +145,17 @@ class loadUI(QtWidgets.QFrame, Ui_Form):
             parmJsonPath = self._prePath + lineEdit.text() + '.json'
             # print(parmJsonPath)
             self.loadNodeParms(parmJsonPath)
-
-        
+            
+    # 获取当前脚本所在的目录
+    def rootpath(self):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        return current_dir
+    
+    # 读取脚本所在目录下的root.json文件
+    def readRoot(self, jsonPath):
+        with open(jsonPath, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+            return data
 
     def fromWrangle(self, textEdit):
         node = hou.selectedNodes()[0]
@@ -154,7 +163,12 @@ class loadUI(QtWidgets.QFrame, Ui_Form):
         textEdit.setText(code)
 
     def saveCode(self, file, lineEdit, textEdit):
-        path = self._path + file + '.vfl'
+        if os.path.exists(self._path):
+            pass     
+        else:
+            os.makedirs(self._path, exist_ok=True)
+            
+        path = self._path + file + '.vfl'   
         title = lineEdit.text()
         text = textEdit.toPlainText()
 
@@ -167,6 +181,11 @@ class loadUI(QtWidgets.QFrame, Ui_Form):
     def saveNodeParms(self, lineEdit):
         node = hou.selectedNodes()[0]
         
+        if os.path.exists(self._prePath):
+            pass
+        else:
+            os.makedirs(self._prePath)
+            
         parmsPath = self._prePath + lineEdit.text() + '.json'
         parms = node.spareParms()
         parmDict = {}
